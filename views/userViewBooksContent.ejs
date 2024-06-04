@@ -1,0 +1,41 @@
+<h1 class="mb-4">Manage Books</h1>
+
+<div class="card">
+  <div class="card-header">
+    <h3>Books List</h3>
+  </div>
+  <div class="card-body">
+    <% if (books.length > 0) { %>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% books.forEach(book => { %>
+        <tr>
+          <td><%= book.title %></td>
+          <td><%= book.author %></td>
+          <td>
+            <form
+              method="POST"
+              action="/api/user/checkout/<%= book.id %>?_method=POST"
+              style="display: inline"
+            >
+              <button type="submit" class="btn btn-sm btn-info">
+                Checkout
+              </button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <p>No books available.</p>
+    <% } %>
+  </div>
+</div>

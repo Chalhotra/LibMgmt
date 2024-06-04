@@ -1,0 +1,48 @@
+<h1 class="mb-4">Manage Books</h1>
+<div class="card">
+  <div class="card-header">
+    <h3>Books List</h3>
+  </div>
+  <div class="card-body">
+    <% if (books.length > 0) { %>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>BookID</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Date of Issue</th>
+          <th>Due Date</th>
+          <th>Return</th>
+          <th>Fine</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% books.forEach(book => { %>
+        <tr>
+          <td><%= book.book_id %></td>
+          <td><%= book.title %></td>
+          <td><%= book.author %></td>
+          <td><%= book.checkout_date %></td>
+          <td><%= book.due_date %></td>
+          <td><%= book.return_date %></td>
+          <td><%= book.fine %></td>
+          <td>
+            <form
+              method="POST"
+              action="/api/user/checkin/<%=book.book_id %>?_method=POST"
+              style="display: inline"
+            >
+              <button type="submit" class="btn btn-sm btn-info">Checkin</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } else { %>
+    <p>No books available.</p>
+    <% } %>
+  </div>
+</div>

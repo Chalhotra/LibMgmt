@@ -1,0 +1,50 @@
+<h1 class="mb-4">Welcome, <%= user.username %>!</h1>
+<div class="card">
+  <div class="card-header">
+    <h3>Available Books</h3>
+  </div>
+  <div class="card-body">
+    <form class="form-inline mb-4" method="GET" action="/api/user/books/search">
+      <input
+        class="form-control mr-sm-2"
+        type="search"
+        placeholder="Search"
+        aria-label="Search"
+        name="query"
+      />
+      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+        Search
+      </button>
+    </form>
+
+    <div id="books-list">
+      <div class="card">
+        <div class="card-header">
+          <h3>Books List</h3>
+        </div>
+        <div class="card-body">
+          <% if (books.length > 0) { %>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Author</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% books.forEach(book => { %>
+              <tr>
+                <td><%= book.title %></td>
+                <td><%= book.author %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% } else { %>
+          <p>No books available.</p>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

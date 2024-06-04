@@ -1,0 +1,39 @@
+<h1 class="mb-4">Welcome, Admin!</h1>
+<div class="card">
+  <div class="card-header">
+    <h3>Manage Books</h3>
+  </div>
+  <div class="card-body">
+    <form
+      id="add-book-form"
+      method="POST"
+      action="/api/admin/books"
+      class="mb-4"
+    >
+      <h4>Add a New Book</h4>
+      <div class="form-group">
+        <label for="title">Title:</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          class="form-control"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="author">Author:</label>
+        <input
+          type="text"
+          id="author"
+          name="author"
+          class="form-control"
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Add Book</button>
+    </form>
+    <p><%= message%></p>
+  </div>
+</div>
