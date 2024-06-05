@@ -9,7 +9,7 @@ const validateToken = asyncHandler(async (req, res, next) => {
   try {
     const decoded = await jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded.user;
-    console.log(decoded.user);
+    // console.log(decoded.user);
     next();
   } catch (err) {
     res.status(401).json({ message: "Invalid token" }); // Generic error message

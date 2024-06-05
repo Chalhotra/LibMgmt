@@ -14,7 +14,7 @@ const getContacts = asyncHandler(async (req, res) => {
 const getContact = asyncHandler(async (req, res) => {
   const id = req.params.id;
   const contact = await getUser(id);
-  console.log(contact);
+  // console.log(contact);
   if (!contact[0]) {
     res.status(404);
     throw new Error("The contact at the specified id does not exist!");

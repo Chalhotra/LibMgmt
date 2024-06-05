@@ -66,7 +66,7 @@ const checkoutBook = asyncHandler(async (req, res) => {
       book: book[0],
       checkoutType: "checkOut",
     });
-    console.log(book);
+    // console.log(book);
   } catch (err) {
     res.status(500).send("Failed to checkout book");
   }
@@ -105,7 +105,7 @@ const checkinBook = asyncHandler(async (req, res) => {
       checkoutType: "checkIn",
     });
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).send("Failed to check in book");
   }
 });
@@ -125,7 +125,7 @@ const checkBookHistory = asyncHandler(async (req, res) => {
       books: results,
     });
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).send("Failed to retrieve borrowing history");
   }
 });
@@ -138,7 +138,7 @@ const searchBooks = asyncHandler(async (req, res) => {
 
     res.render("userHome", { user: req.user, books: results });
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).send("Failed to search books");
   }
 });

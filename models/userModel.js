@@ -12,7 +12,6 @@ const register = async (username, password, isAdmin) => {
     );
     return { id: result.insertId };
   } catch (err) {
-    console.error(err);
     throw new Error("Registration failed");
   }
 };

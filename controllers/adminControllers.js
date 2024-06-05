@@ -95,7 +95,7 @@ LEFT JOIN
       books: rows,
     });
   } catch (err) {
-    console.error(err); // Log the error for debugging
+    ////console.error(err)(err)(err); // Log the error for debugging
     res.status(500).json({ message: "Server Error" });
   }
 });
@@ -115,7 +115,7 @@ const adminAddBook = asyncHandler(async (req, res) => {
 
     message = `Book ${title} added successfully`;
   } catch (err) {
-    console.error(err); // Log the error for debugging
+    //console.error(err)(err); // Log the error for debugging
 
     message = "Failed to add book";
   }
@@ -147,7 +147,7 @@ const renderUpdateBookPage = asyncHandler(async (req, res) => {
       message: "",
     });
   } catch (err) {
-    console.error(err); // Log the error for debugging
+    //console.error(err)(err); // Log the error for debugging
     res.status(500).json({ message: "Server Error" });
   }
 });
@@ -168,7 +168,7 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
     await pool.query(query, [title, author, req.params.id]);
     message = `Book '${title}' updated successfully`;
   } catch (err) {
-    console.error(err); // Log the error for debugging
+    //console.error(err)(err); // Log the error for debugging
     res.status(500);
     message = "Failed to update book";
   }
@@ -210,7 +210,7 @@ const adminDeleteBook = asyncHandler(async (req, res) => {
 
     // Render the deleteBooks.ejs page with success and book details
   } catch (err) {
-    console.error(err); // Log the error for debugging
+    //console.error(err)(err); // Log the error for debugging
     res.status(500);
     success = false;
   }
@@ -232,7 +232,7 @@ const searchBooks = asyncHandler(async (req, res) => {
     }
     res.json(results);
   } catch (err) {
-    console.error(err);
+    //console.error(err)(err);
     res.status(500).send("Failed to search books");
   }
 });
