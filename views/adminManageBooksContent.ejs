@@ -12,6 +12,7 @@
           <th>Title</th>
           <th>Author</th>
           <th>Actions</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody>
@@ -19,17 +20,18 @@
         <tr>
           <td><%= book.title %></td>
           <td><%= book.author %></td>
+
           <td>
             <form
-              method="POST"
-              action="/api/admin/books/update/<%= book.id %>?_method=PUT"
+              method="GET"
+              action="/api/admin/books/update/<%= book.book_id %>?_method=GET"
               style="display: inline"
             >
               <button type="submit" class="btn btn-sm btn-info">Update</button>
             </form>
             <form
               method="POST"
-              action="/api/admin/books/delete/<%= book.id %>?_method=DELETE"
+              action="/api/admin/books/delete/<%= book.book_id %>?_method=DELETE"
               style="display: inline"
             >
               <button type="submit" class="btn btn-sm btn-danger">
@@ -37,6 +39,7 @@
               </button>
             </form>
           </td>
+          <td><%= book.borrowing_status %></td>
         </tr>
         <% }) %>
       </tbody>

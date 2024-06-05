@@ -1,6 +1,29 @@
 const { pool } = require("../database"); // Adjust the path as needed
 const asyncHandler = require("express-async-handler"); // Assuming you use asyncHandler for cleaner code
 
+const requestForAdmin = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  let msg;
+  try {
+    const [results] = await pool.query(
+      'SELECT * FROM admin_requests WHERE user_id = ? AND status = "pending"',
+      [userId]
+    );
+    if (results.length > 0) {
+      res.status(400);
+      msg = "Admin request already pending";
+    } else {
+      await pool.query("INSERT INTO admin_requests (user_id) VALUES (?)", [
+        userId,
+      ]);
+      msg = "Admin status requested";
+    }
+  } catch (err) {
+    res.status(500);
+    msg = "Failed to request admin status";
+  }
+  res.render("userRequest", { message: msg });
+});
 // Controller to get available books
 const getAvailableBooks = asyncHandler(async (req, res) => {
   const query = "SELECT * FROM books WHERE available = true";
@@ -109,7 +132,7 @@ const checkBookHistory = asyncHandler(async (req, res) => {
 const searchBooks = asyncHandler(async (req, res) => {
   const { query } = req.query;
   const sqlQuery =
-    "SELECT * FROM books WHERE title LIKE ? OR author LIKE ? AND available = true";
+    "SELECT * FROM books WHERE title LIKE ? OR author LIKE ? AND available = 1";
   try {
     const [results] = await pool.query(sqlQuery, [`%${query}%`, `%${query}%`]);
 
@@ -126,4 +149,5 @@ module.exports = {
   checkinBook,
   checkBookHistory,
   searchBooks,
+  requestForAdmin,
 };

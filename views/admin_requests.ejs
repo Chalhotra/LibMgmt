@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= title %></title>
+    <title>Admin Requests</title>
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -26,9 +26,6 @@
               >View Admin Requests</a
             >
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/logout">Logout</a>
-          </li>
           <% } else if (user) { %>
           <li class="nav-item">
             <a class="nav-link" href="/api/user/books/view">Available Books</a>
@@ -36,27 +33,64 @@
           <li class="nav-item">
             <a class="nav-link" href="/api/user/history">Borrowing History</a>
           </li>
-        </li>
-        <li class="nav-item">
+          <% } %>
+          <li class="nav-item">
             <a class="nav-link" href="/logout">Logout</a>
           </li>
-        <div style="width: 40rem"></div>
-        <li class="nav-item">
-          <form action="/api/user/request-admin" method="POST">
-            <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">
-              Request Admin Status
-            </button>
-          </form>
-        </li>
-          <% } %>
-          
         </ul>
       </div>
     </nav>
-    <div class="container mt-4"><%- include(view, { user: user }) %></div>
+
+    <div class="container mt-4">
+      <h1 class="mb-4">Admin Requests</h1>
+      <div class="card">
+        <div class="card-header">
+          <h3>Requests List</h3>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% requests.forEach(request => { %>
+              <tr>
+                <td><%= request.username %></td>
+                <td><%= request.status %></td>
+                <td>
+                  <form
+                    action="/api/admin/requests/approve/<%= request.id %>"
+                    method="POST"
+                    style="display: inline"
+                  >
+                    <button type="submit" class="btn btn-sm btn-success">
+                      Approve
+                    </button>
+                  </form>
+                  <form
+                    action="/api/admin/requests/deny/<%= request.id %>"
+                    method="POST"
+                    style="display: inline"
+                  >
+                    <button type="submit" class="btn btn-sm btn-danger">
+                      Deny
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="/scripts.js"></script>
   </body>
 </html>

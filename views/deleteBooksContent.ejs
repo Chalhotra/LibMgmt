@@ -1,0 +1,21 @@
+<h1 class="mb-4">Delete Books</h1>
+<div class="card">
+  <div class="card-header">
+    <h3>Delete Books</h3>
+  </div>
+  <div class="card-body">
+    <% if (success) { %>
+    <div class="alert alert-success" role="alert">
+      Book "<%= deletedBook.title %>" by <%= deletedBook.author %> deleted
+      successfully!
+    </div>
+    <% } else { %>
+    <div class="alert alert-danger" role="alert">
+      Failed to delete books. Please try again later.
+    </div>
+    <% } %>
+    <form action="/api/admin/books/manage" method="GET">
+      <button type="submit" class="btn btn-secondary">Go Back</button>
+    </form>
+  </div>
+</div>

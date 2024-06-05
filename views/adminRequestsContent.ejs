@@ -1,0 +1,43 @@
+<h1 class="mb-4">Admin Requests</h1>
+<div class="card">
+  <div class="card-header">
+    <h3>Requests List</h3>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% requests.forEach(request => { %>
+        <tr>
+          <td><%= request.username %></td>
+          <td><%= request.status %></td>
+          <td>
+            <form
+              action="/api/admin/requests/approve/<%= request.id %>"
+              method="POST"
+              style="display: inline"
+            >
+              <button type="submit" class="btn btn-sm btn-success">
+                Approve
+              </button>
+            </form>
+            <form
+              action="/api/admin/requests/deny/<%= request.id %>"
+              method="POST"
+              style="display: inline"
+            >
+              <button type="submit" class="btn btn-sm btn-danger">Deny</button>
+            </form>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -55,6 +55,9 @@ app.get("/history", validateToken, (req, res) => {
   res.render("userBorrowingHistory", { user: req.user, books: rows });
 });
 
+app.get("/");
+app.get("/");
+
 app.get("/logout", (req, res) => {
   res.clearCookie("jwt");
   res.redirect("/login");
