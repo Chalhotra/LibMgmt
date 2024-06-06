@@ -3,7 +3,11 @@ const { pool } = require("../database");
 const { search } = require("../routes/loginRoutes");
 
 const viewAdminRequests = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin) return res.sendStatus(403);
+  if (!req.user.isAdmin) {
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
+  }
 
   try {
     const [requests] = await pool.query(`
@@ -14,12 +18,17 @@ const viewAdminRequests = asyncHandler(async (req, res) => {
         `);
     res.render("admin_requests", { requests: requests, user: req.user });
   } catch (err) {
-    res.status(500).send("Failed to retrieve admin requests");
+    res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to retrieve admin requests"
+    );
   }
 });
 
 const approveAdminRequests = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin) return res.sendStatus(403);
+  if (!req.user.isAdmin)
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
 
   const requestId = req.params.id;
   let msg;
@@ -38,13 +47,16 @@ const approveAdminRequests = asyncHandler(async (req, res) => {
     await pool.query("UPDATE users SET isAdmin = true WHERE id = ?", [userId]);
     msg = "Admin request approved";
   } catch (err) {
-    msg = "Failed to approve admin request";
+    msg = "Internal Server Error!! Failed to approve admin request";
   }
   res.render("userRequest", { message: msg });
 });
 
 const denyAdminRequests = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin) return res.sendStatus(403);
+  if (!req.user.isAdmin)
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
 
   const requestId = req.params.id;
   const [results] = await pool.query(
@@ -62,17 +74,17 @@ const denyAdminRequests = asyncHandler(async (req, res) => {
     msg = "Admin request denied";
   } catch (err) {
     res.status(500);
-    msg = "Failed to deny admin request";
+    msg = "Internal Server Error!! Failed to deny admin request";
   }
 
   res.render("userRequest", { message: msg });
 });
 
-// Controller to view all books
 const adminViewBooks = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-    res.sendStatus(403);
-    throw new Error("You are not an admin!"); // Forbidden
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
   }
 
   const query = `SELECT 
@@ -95,16 +107,18 @@ LEFT JOIN
       books: rows,
     });
   } catch (err) {
-    ////console.error(err)(err)(err); // Log the error for debugging
-    res.status(500).json({ message: "Server Error" });
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to retrieve books"
+    );
   }
 });
 
 // Controller to add a new book
 const adminAddBook = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-    res.sendStatus(403);
-    throw new Error("You are not an admin!"); // Forbidden
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
   }
 
   const { title, author } = req.body;
@@ -115,8 +129,6 @@ const adminAddBook = asyncHandler(async (req, res) => {
 
     message = `Book ${title} added successfully`;
   } catch (err) {
-    //console.error(err)(err); // Log the error for debugging
-
     message = "Failed to add book";
   }
   res.render("adminHome", {
@@ -125,37 +137,37 @@ const adminAddBook = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller to update a book
 const renderUpdateBookPage = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-    res.sendStatus(403);
-    throw new Error("You are not an admin!"); // Forbidden
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
   }
 
   const bookId = req.params.id;
 
   try {
-    // Fetch book details from the database
     const query = "SELECT * FROM books WHERE id = ?";
     const [rows] = await pool.query(query, [bookId]);
     const book = rows[0];
 
-    // Render the update book page with book details
     res.render("updateBook", {
       user: req.user,
       book: book,
       message: "",
     });
   } catch (err) {
-    //console.error(err)(err); // Log the error for debugging
-    res.status(500).json({ message: "Server Error" });
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to retrieve book details"
+    );
   }
 });
 
 const adminUpdateBook = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-    res.sendStatus(403);
-    throw new Error("Non-admins aren't allowed to update books!");
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
   }
 
   const { title, author } = req.body;
@@ -168,11 +180,10 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
     await pool.query(query, [title, author, req.params.id]);
     message = `Book '${title}' updated successfully`;
   } catch (err) {
-    //console.error(err)(err); // Log the error for debugging
     res.status(500);
     message = "Failed to update book";
   }
-  // Render the update book page with book details
+
   res.render("updateBook", {
     user: req.user,
     book: book,
@@ -180,14 +191,12 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
   });
 });
 
-// Controller to delete a book
-// Controller to delete a book
 const adminDeleteBook = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
-    res.sendStatus(403);
-    throw new Error("You are not an admin!"); // Forbidden
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
   }
-
   const id = req.params.id;
   const viewQuery = "SELECT * FROM books WHERE id = ?";
   const deleteQuery = "DELETE FROM books WHERE id = ?";
@@ -197,20 +206,13 @@ const adminDeleteBook = asyncHandler(async (req, res) => {
   try {
     const [result] = await pool.query(viewQuery, [id]);
     if (result.length === 0) {
-      res.status(404).json({ message: "Book not found" });
       success = false;
-      return;
     }
-
-    // Store details of the book before deletion
     deletedBook = result[0];
     await pool.query(deleteCheckouts, [id]);
     await pool.query(deleteQuery, [id]);
     success = true;
-
-    // Render the deleteBooks.ejs page with success and book details
   } catch (err) {
-    //console.error(err)(err); // Log the error for debugging
     res.status(500);
     success = false;
   }
@@ -232,7 +234,6 @@ const searchBooks = asyncHandler(async (req, res) => {
     }
     res.json(results);
   } catch (err) {
-    //console.error(err)(err);
     res.status(500).send("Failed to search books");
   }
 });

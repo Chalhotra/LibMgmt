@@ -11,7 +11,6 @@
     <% } else if (checkoutType === 'checkIn') { %>
     <p>Checked In By: <%= user.username %></p>
     <% } %>
-    <!-- Add more details as needed -->
 
     <form action="/api/user/books/view" method="GET">
       <button type="submit" class="btn btn-secondary">Go Back</button>

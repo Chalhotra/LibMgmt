@@ -1,33 +1,32 @@
-const { pool } = require("../database"); // Adjust the path as needed
-const asyncHandler = require("express-async-handler"); // Assuming you use asyncHandler for cleaner code
+const { pool } = require("../database");
+const asyncHandler = require("express-async-handler");
 
 const requestForAdmin = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  let msg;
   try {
     const [results] = await pool.query(
       'SELECT * FROM admin_requests WHERE user_id = ? AND status = "pending"',
       [userId]
     );
     if (results.length > 0) {
-      res.status(400);
-      msg = "Admin request already pending";
+      return res.redirect(
+        "/error?type=400 Bad Request&message=Admin request already pending"
+      );
     } else {
       await pool.query("INSERT INTO admin_requests (user_id) VALUES (?)", [
         userId,
       ]);
-      msg = "Admin status requested";
+      return res.render("userRequest", { message: "Admin status requested" });
     }
   } catch (err) {
-    res.status(500);
-    msg = "Failed to request admin status";
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to request admin status"
+    );
   }
-  res.render("userRequest", { message: msg });
 });
-// Controller to get available books
+
 const getAvailableBooks = asyncHandler(async (req, res) => {
   const query = "SELECT * FROM books WHERE available = true";
-
   try {
     const [results] = await pool.query(query);
     res.render("userViewBooks", {
@@ -35,11 +34,12 @@ const getAvailableBooks = asyncHandler(async (req, res) => {
       books: results,
     });
   } catch (err) {
-    res.status(500).send("Failed to retrieve books");
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to retrieve books"
+    );
   }
 });
 
-// Controller to checkout a book
 const checkoutBook = asyncHandler(async (req, res) => {
   const bookId = req.params.id;
   const userId = req.user.id;
@@ -66,13 +66,13 @@ const checkoutBook = asyncHandler(async (req, res) => {
       book: book[0],
       checkoutType: "checkOut",
     });
-    // console.log(book);
   } catch (err) {
-    res.status(500).send("Failed to checkout book");
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to checkout book"
+    );
   }
 });
 
-// Controller to check in a book
 const checkinBook = asyncHandler(async (req, res) => {
   const bookId = req.params.id;
   const userId = req.user.id;
@@ -105,8 +105,9 @@ const checkinBook = asyncHandler(async (req, res) => {
       checkoutType: "checkIn",
     });
   } catch (err) {
-    // console.error(err);
-    res.status(500).send("Failed to check in book");
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to check in book"
+    );
   }
 });
 
@@ -125,21 +126,23 @@ const checkBookHistory = asyncHandler(async (req, res) => {
       books: results,
     });
   } catch (err) {
-    // console.error(err);
-    res.status(500).send("Failed to retrieve borrowing history");
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to retrieve borrowing history"
+    );
   }
 });
+
 const searchBooks = asyncHandler(async (req, res) => {
   const { query } = req.query;
   const sqlQuery =
     "SELECT * FROM books WHERE title LIKE ? OR author LIKE ? AND available = 1";
   try {
     const [results] = await pool.query(sqlQuery, [`%${query}%`, `%${query}%`]);
-
     res.render("userHome", { user: req.user, books: results });
   } catch (err) {
-    // console.error(err);
-    res.status(500).send("Failed to search books");
+    return res.redirect(
+      "/error?type=500 Internal Server Error&message=Failed to search books"
+    );
   }
 });
 

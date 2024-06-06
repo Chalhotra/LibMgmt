@@ -1,8 +1,8 @@
 const bcrypt = require("bcryptjs");
-const { pool } = require("../database"); // Import the database pool
+const { pool } = require("../database");
 
 const register = async (username, password, isAdmin) => {
-  const salt = await bcrypt.genSalt(10); // Generate a random salt for password hashing
+  const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
   try {

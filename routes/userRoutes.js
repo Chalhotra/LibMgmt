@@ -7,7 +7,7 @@ const {
   searchBooks,
   requestForAdmin,
 } = require("../controllers/userControllers");
-const validateToken = require("../middleware/validateTokenHandler"); // Adjust the path as needed
+const validateToken = require("../middleware/validateTokenHandler");
 
 const router = express.Router();
 
