@@ -123,21 +123,41 @@ const adminAddBook = asyncHandler(async (req, res) => {
   }
 
   const { title, author, quantity } = req.body;
-  const query = "INSERT INTO books (title, author, quantity) VALUES (?, ?, ?)";
+
   let message;
   try {
-    await pool.query(query, [title, author, quantity]);
+    // Check if the book already exists
+    const [existingBooks] = await pool.query(
+      "SELECT id, quantity FROM books WHERE title = ? AND author = ?",
+      [title, author]
+    );
 
-    message = `Book ${title} added successfully`;
+    if (existingBooks.length > 0) {
+      // Book already exists, update the quantity
+      const existingBook = existingBooks[0];
+      const newQuantity = existingBook.quantity + parseInt(quantity, 10);
+      await pool.query("UPDATE books SET quantity = ? WHERE id = ?", [
+        newQuantity,
+        existingBook.id,
+      ]);
+      message = `Book '${title}' quantity updated successfully.`;
+    } else {
+      // Book does not exist, insert a new record
+      await pool.query(
+        "INSERT INTO books (title, author, quantity) VALUES (?, ?, ?)",
+        [title, author, quantity]
+      );
+      message = `Book '${title}' added successfully.`;
+    }
   } catch (err) {
     message = "Failed to add book";
   }
+
   res.render("adminHome", {
     user: req.user,
     message,
   });
 });
-
 const renderUpdateBookPage = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
     return res.redirect(

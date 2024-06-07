@@ -36,5 +36,4 @@ CREATE TABLE admin_requests (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-INSERT INTO users(username, password, isAdmin) values('admin', 'R6DYXOv2oeb0OPi', 1);
-    
+INSERT INTO users(username, password, isAdmin) values('admin', '$2b$10$R3.uYf5sgzrG664RYYG86..MOHrTAvCPF7P7GZJrU/1ARsCyECx1m', 1);
