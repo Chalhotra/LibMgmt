@@ -29,13 +29,15 @@
           <td><%= book.return_date %></td>
           <td><%= book.fine %></td>
           <td>
+            <% if (!book.return_date) { %>
             <form
               method="POST"
-              action="/api/user/checkin/<%=book.book_id %>?_method=POST"
+              action="/api/user/checkin/<%= book.id %>?_method=POST"
               style="display: inline"
             >
               <button type="submit" class="btn btn-sm btn-info">Checkin</button>
             </form>
+            <% } %>
           </td>
         </tr>
         <% }) %>

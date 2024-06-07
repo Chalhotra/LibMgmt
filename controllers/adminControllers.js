@@ -89,6 +89,7 @@ const adminViewBooks = asyncHandler(async (req, res) => {
 
   const query = `SELECT 
   b.id AS book_id,
+  b.quantity, 
   b.title,
   b.author,
   IF(c.user_id IS NULL, 'Available', CONCAT('Borrowed by ', u.username)) AS borrowing_status
@@ -121,11 +122,11 @@ const adminAddBook = asyncHandler(async (req, res) => {
     );
   }
 
-  const { title, author } = req.body;
-  const query = "INSERT INTO books (title, author) VALUES (?, ?)";
+  const { title, author, quantity } = req.body;
+  const query = "INSERT INTO books (title, author, quantity) VALUES (?, ?, ?)";
   let message;
   try {
-    await pool.query(query, [title, author]);
+    await pool.query(query, [title, author, quantity]);
 
     message = `Book ${title} added successfully`;
   } catch (err) {
@@ -170,14 +171,15 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
     );
   }
 
-  const { title, author } = req.body;
-  const queryBook = "SELECT * FROM books WHERE title = ?";
-  const [rows] = await pool.query(queryBook, [title]);
+  const { title, author, quantity } = req.body;
+  const queryBook = "SELECT * FROM books WHERE id = ?";
+  const [rows] = await pool.query(queryBook, [req.params.id]);
   const book = rows[0];
-  const query = "UPDATE books SET title = ?, author = ? WHERE id = ?";
+  const query =
+    "UPDATE books SET title = ?, author = ?, quantity = ? WHERE id = ?";
   let message;
   try {
-    await pool.query(query, [title, author, req.params.id]);
+    await pool.query(query, [title, author, quantity, req.params.id]);
     message = `Book '${title}' updated successfully`;
   } catch (err) {
     res.status(500);
@@ -186,7 +188,7 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
 
   res.render("updateBook", {
     user: req.user,
-    book: book,
+    book: { ...book, title, author, quantity },
     message: message,
   });
 });

@@ -13,7 +13,8 @@ CREATE TABLE books (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     author VARCHAR(255) NOT NULL,
-    available BOOLEAN DEFAULT TRUE
+    quantity INT DEFAULT 1,
+    available BOOLEAN GENERATED ALWAYS AS (quantity > 0) STORED
 );
 
 CREATE TABLE checkouts (
@@ -34,3 +35,6 @@ CREATE TABLE admin_requests (
     status VARCHAR(20) DEFAULT 'pending',
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+INSERT INTO users(username, password, isAdmin) values('admin', 'R6DYXOv2oeb0OPi', 1);
+    

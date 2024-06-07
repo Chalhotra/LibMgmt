@@ -56,7 +56,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const user = info[0][0];
     if (!user) {
       return res.redirect(
-        "/error?type=401 Unauthorized&message=Invalid credentials"
+        "/error?type=404 NotFound&message=User does not exist"
       );
     }
 

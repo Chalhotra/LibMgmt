@@ -49,10 +49,18 @@ const checkoutBook = asyncHandler(async (req, res) => {
 
   const insertCheckoutQuery =
     "INSERT INTO checkouts (user_id, book_id, checkout_date, due_date) VALUES (?, ?, ?, ?)";
-  const updateBookQuery = "UPDATE books SET available = false WHERE id = ?";
+  const updateBookQuery =
+    "UPDATE books SET quantity = quantity - 1 WHERE id = ? AND quantity > 0";
   const bookQuery = "SELECT * FROM books WHERE id = ?";
 
   try {
+    const [bookRows] = await pool.query(bookQuery, [bookId]);
+    if (bookRows[0].quantity === 0) {
+      return res.redirect(
+        "/error?type=400 Bad Request&message=Book is not available for checkout"
+      );
+    }
+
     await pool.query(insertCheckoutQuery, [
       userId,
       bookId,
@@ -74,16 +82,31 @@ const checkoutBook = asyncHandler(async (req, res) => {
 });
 
 const checkinBook = asyncHandler(async (req, res) => {
-  const bookId = req.params.id;
+  const checkoutId = req.params.id; // assuming the ID of the checkout record is passed as a parameter
   const userId = req.user.id;
   const returnDate = new Date();
 
-  const selectDueDateQuery =
-    "SELECT due_date FROM checkouts WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
+  // Get the due date and book ID from the checkouts table using the checkout ID
+  const selectDueDateQuery = `
+    SELECT id, due_date, book_id FROM checkouts 
+    WHERE id = ? AND user_id = ? AND return_date IS NULL
+  `;
+
   try {
-    const [results] = await pool.query(selectDueDateQuery, [userId, bookId]);
-    const dueDate = new Date(results[0].due_date);
+    const [results] = await pool.query(selectDueDateQuery, [
+      checkoutId,
+      userId,
+    ]);
+    if (results.length === 0) {
+      return res.redirect(
+        "/error?type=404 Not Found&message=Checkout record not found or already returned"
+      );
+    }
+
+    const { due_date, book_id } = results[0];
+    const dueDate = new Date(due_date);
     let fine = 0;
+
     if (returnDate > dueDate) {
       const daysLate = Math.ceil(
         (returnDate - dueDate) / (1000 * 60 * 60 * 24)
@@ -91,14 +114,27 @@ const checkinBook = asyncHandler(async (req, res) => {
       fine = daysLate * 1;
     }
 
-    const updateCheckoutQuery =
-      "UPDATE checkouts SET return_date = ?, fine = ? WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
-    await pool.query(updateCheckoutQuery, [returnDate, fine, userId, bookId]);
+    // Update the checkout record to set the return date and fine
+    const updateCheckoutQuery = `
+      UPDATE checkouts SET return_date = ?, fine = ? 
+      WHERE id = ? AND user_id = ? AND return_date IS NULL
+    `;
+    await pool.query(updateCheckoutQuery, [
+      returnDate,
+      fine,
+      checkoutId,
+      userId,
+    ]);
 
-    const updateBookQuery = "UPDATE books SET available = true WHERE id = ?";
+    // Update the quantity of the book in the books table
+    const updateBookQuery =
+      "UPDATE books SET quantity = quantity + 1 WHERE id = ?";
+    await pool.query(updateBookQuery, [book_id]);
+
+    // Retrieve the book details
     const bookQuery = "SELECT * FROM books WHERE id = ?";
-    await pool.query(updateBookQuery, [bookId]);
-    const [book] = await pool.query(bookQuery, [bookId]);
+    const [book] = await pool.query(bookQuery, [book_id]);
+
     res.render("checkoutDetails", {
       user: req.user,
       book: book[0],
@@ -114,7 +150,7 @@ const checkinBook = asyncHandler(async (req, res) => {
 const checkBookHistory = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const query = `
-        SELECT checkouts.book_id, books.title, books.author, checkouts.checkout_date, checkouts.due_date, checkouts.return_date, checkouts.fine
+        SELECT checkouts.id, checkouts.book_id, books.title, books.author, checkouts.checkout_date, checkouts.due_date, checkouts.return_date, checkouts.fine
         FROM checkouts
         JOIN books ON checkouts.book_id = books.id
         WHERE checkouts.user_id = ?
