@@ -4,18 +4,27 @@ const asyncHandler = require("express-async-handler");
 const requestForAdmin = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   try {
+    // Check if the user already has a pending admin request
     const [results] = await pool.query(
-      'SELECT * FROM admin_requests WHERE user_id = ? AND status = "pending"',
+      "SELECT admin_request_status FROM users WHERE id = ?",
       [userId]
     );
-    if (results.length > 0) {
+    const user = results[0];
+
+    if (user.admin_request_status === "pending") {
       return res.redirect(
         "/error?type=400 Bad Request&message=Admin request already pending"
       );
+    } else if (user.admin_request_status === "approved") {
+      return res.redirect(
+        "/error?type=400 Bad Request&message=You are already an admin"
+      );
     } else {
-      await pool.query("INSERT INTO admin_requests (user_id) VALUES (?)", [
-        userId,
-      ]);
+      // Update the admin_request_status to 'pending'
+      await pool.query(
+        'UPDATE users SET admin_request_status = "pending" WHERE id = ?',
+        [userId]
+      );
       return res.render("userRequest", { message: "Admin status requested" });
     }
   } catch (err) {
@@ -24,6 +33,10 @@ const requestForAdmin = asyncHandler(async (req, res) => {
     );
   }
 });
+
+module.exports = {
+  requestForAdmin,
+};
 
 const getAvailableBooks = asyncHandler(async (req, res) => {
   const query = "SELECT * FROM books WHERE available = true";

@@ -63,7 +63,7 @@
                 <td><%= request.status %></td>
                 <td>
                   <form
-                    action="/api/admin/requests/approve/<%= request.id %>"
+                    action="/api/admin/requests/<%= request.id %>/approve"
                     method="POST"
                     style="display: inline"
                   >
@@ -72,7 +72,7 @@
                     </button>
                   </form>
                   <form
-                    action="/api/admin/requests/deny/<%= request.id %>"
+                    action="/api/admin/requests/<%= request.id %>/deny"
                     method="POST"
                     style="display: inline"
                   >

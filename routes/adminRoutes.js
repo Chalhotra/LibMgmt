@@ -20,7 +20,7 @@ router.post("/books/delete/:id", validateToken, adminDeleteBook);
 router.get("/books/search", validateToken, searchBooks);
 router.get("/books/update/:id", validateToken, renderUpdateBookPage);
 router.get("/requests", validateToken, viewAdminRequests);
-router.post("/requests/approve/:id", validateToken, approveAdminRequests);
-router.post("/requests/deny/:id", validateToken, denyAdminRequests);
+router.post("/requests/:id/approve", validateToken, approveAdminRequests);
+router.post("/requests/:id/deny", validateToken, denyAdminRequests);
 
 module.exports = router;

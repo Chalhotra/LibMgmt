@@ -11,12 +11,11 @@ const viewAdminRequests = asyncHandler(async (req, res) => {
 
   try {
     const [requests] = await pool.query(`
-            SELECT ar.id, u.id as user_id, u.username, ar.status 
-            FROM admin_requests ar 
-            JOIN users u ON ar.user_id = u.id 
-            WHERE ar.status = 'pending'
-        `);
-    res.render("admin_requests", { requests: requests, user: req.user });
+      SELECT id, username, admin_request_status 
+      FROM users 
+      WHERE admin_request_status = 'pending'
+    `);
+    res.render("admin_requests", { requests, user: req.user });
   } catch (err) {
     res.redirect(
       "/error?type=500 Internal Server Error&message=Failed to retrieve admin requests"
@@ -25,26 +24,19 @@ const viewAdminRequests = asyncHandler(async (req, res) => {
 });
 
 const approveAdminRequests = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin)
+  if (!req.user.isAdmin) {
     return res.redirect(
       "/error?type=403 Forbidden&message=You are not authorized to view this page."
     );
+  }
 
-  const requestId = req.params.id;
+  const userId = req.params.id;
   let msg;
   try {
     await pool.query(
-      'UPDATE admin_requests SET status = "approved" WHERE id = ?',
-      [requestId]
+      'UPDATE users SET admin_request_status = "approved", isAdmin = true WHERE id = ?',
+      [userId]
     );
-
-    const [results] = await pool.query(
-      "SELECT user_id FROM admin_requests WHERE id = ?",
-      [requestId]
-    );
-    const userId = results[0].user_id;
-
-    await pool.query("UPDATE users SET isAdmin = true WHERE id = ?", [userId]);
     msg = "Admin request approved";
   } catch (err) {
     msg = "Internal Server Error!! Failed to approve admin request";
@@ -53,30 +45,24 @@ const approveAdminRequests = asyncHandler(async (req, res) => {
 });
 
 const denyAdminRequests = asyncHandler(async (req, res) => {
-  if (!req.user.isAdmin)
+  if (!req.user.isAdmin) {
     return res.redirect(
       "/error?type=403 Forbidden&message=You are not authorized to view this page."
     );
+  }
 
-  const requestId = req.params.id;
-  const [results] = await pool.query(
-    "SELECT user_id FROM admin_requests WHERE id = ?",
-    [requestId]
-  );
-  const userId = results[0].user_id;
+  const userId = req.params.id;
   let msg;
   try {
     await pool.query(
-      'UPDATE admin_requests SET status = "denied" WHERE id = ?',
-      [requestId]
+      'UPDATE users SET admin_request_status = "denied" WHERE id = ?',
+      [userId]
     );
-    await pool.query("UPDATE users SET isAdmin = false WHERE id = ?", [userId]);
     msg = "Admin request denied";
   } catch (err) {
     res.status(500);
     msg = "Internal Server Error!! Failed to deny admin request";
   }
-
   res.render("userRequest", { message: msg });
 });
 
