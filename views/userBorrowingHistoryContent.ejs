@@ -26,7 +26,10 @@
           <td><%= book.author %></td>
           <td><%= book.checkout_date %></td>
           <td><%= book.due_date %></td>
-          <td><%= book.return_date %></td>
+          <td>
+            <%= book.return_date ? book.return_date : 'Yet to be returned' %>
+          </td>
+
           <td><%= book.fine %></td>
           <td>
             <% if (!book.return_date) { %>

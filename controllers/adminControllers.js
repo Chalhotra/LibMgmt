@@ -73,19 +73,20 @@ const adminViewBooks = asyncHandler(async (req, res) => {
     );
   }
 
-  const query = `SELECT 
+  const query = `
+  SELECT 
   b.id AS book_id,
   b.quantity, 
   b.title,
   b.author,
-  IF(c.user_id IS NULL, 'Available', CONCAT('Borrowed by ', u.username)) AS borrowing_status
+  CASE 
+    WHEN b.quantity > 0 THEN 'Available'
+    ELSE 'Not Available'
+  END AS borrowing_status
 FROM 
-  books b
-LEFT JOIN 
-  checkouts c ON b.id = c.book_id AND c.return_date IS NULL
-LEFT JOIN 
-  users u ON c.user_id = u.id;
-`;
+  books b;
+
+  `;
 
   try {
     const [rows] = await pool.query(query);
@@ -198,36 +199,53 @@ const adminUpdateBook = asyncHandler(async (req, res) => {
     message: message,
   });
 });
-
 const adminDeleteBook = asyncHandler(async (req, res) => {
   if (!req.user.isAdmin) {
     return res.redirect(
       "/error?type=403 Forbidden&message=You are not authorized to view this page."
     );
   }
+
   const id = req.params.id;
   const viewQuery = "SELECT * FROM books WHERE id = ?";
+  const checkBorrowedQuery =
+    "SELECT COUNT(*) AS count FROM checkouts WHERE book_id = ? AND return_date IS NULL";
   const deleteQuery = "DELETE FROM books WHERE id = ?";
   const deleteCheckouts = "DELETE FROM checkouts WHERE book_id = ?";
+
   let deletedBook;
   let success;
+  let message = "";
+
   try {
-    const [result] = await pool.query(viewQuery, [id]);
-    if (result.length === 0) {
+    const [bookResult] = await pool.query(viewQuery, [id]);
+    if (bookResult.length === 0) {
       success = false;
+      message = "Book not found";
+    } else {
+      deletedBook = bookResult[0];
+      const [borrowedResult] = await pool.query(checkBorrowedQuery, [id]);
+      if (borrowedResult[0].count > 0) {
+        success = false;
+        message = "Cannot delete book because it is currently borrowed";
+      } else {
+        await pool.query(deleteCheckouts, [id]);
+        await pool.query(deleteQuery, [id]);
+        success = true;
+        message = "Book successfully deleted";
+      }
     }
-    deletedBook = result[0];
-    await pool.query(deleteCheckouts, [id]);
-    await pool.query(deleteQuery, [id]);
-    success = true;
   } catch (err) {
     res.status(500);
     success = false;
+    message = "Failed to delete book due to an internal server error";
   }
+
   res.render("deleteBooks", {
     user: req.user,
     success: success,
     deletedBook: deletedBook || {},
+    message: message,
   });
 });
 

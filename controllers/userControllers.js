@@ -3,8 +3,9 @@ const asyncHandler = require("express-async-handler");
 
 const requestForAdmin = asyncHandler(async (req, res) => {
   const userId = req.user.id;
+
   try {
-    // Check if the user already has a pending admin request
+    // Check if the user already has a pending admin request or is already an admin
     const [results] = await pool.query(
       "SELECT admin_request_status FROM users WHERE id = ?",
       [userId]
@@ -19,14 +20,27 @@ const requestForAdmin = asyncHandler(async (req, res) => {
       return res.redirect(
         "/error?type=400 Bad Request&message=You are already an admin"
       );
-    } else {
-      // Update the admin_request_status to 'pending'
-      await pool.query(
-        'UPDATE users SET admin_request_status = "pending" WHERE id = ?',
-        [userId]
-      );
-      return res.render("userRequest", { message: "Admin status requested" });
     }
+
+    // Check if the user has any currently borrowed books
+    const [borrowedResults] = await pool.query(
+      "SELECT COUNT(*) AS count FROM checkouts WHERE user_id = ? AND return_date IS NULL",
+      [userId]
+    );
+
+    if (borrowedResults[0].count > 0) {
+      return res.redirect(
+        "/error?type=400 Bad Request&message=Cannot request admin status while having borrowed books"
+      );
+    }
+
+    // Update the admin_request_status to 'pending'
+    await pool.query(
+      'UPDATE users SET admin_request_status = "pending" WHERE id = ?',
+      [userId]
+    );
+
+    return res.render("userRequest", { message: "Admin status requested" });
   } catch (err) {
     return res.redirect(
       "/error?type=500 Internal Server Error&message=Failed to request admin status"
@@ -65,8 +79,22 @@ const checkoutBook = asyncHandler(async (req, res) => {
   const updateBookQuery =
     "UPDATE books SET quantity = quantity - 1 WHERE id = ? AND quantity > 0";
   const bookQuery = "SELECT * FROM books WHERE id = ?";
+  const activeCheckoutQuery =
+    "SELECT * FROM checkouts WHERE user_id = ? AND book_id = ? AND return_date IS NULL";
 
   try {
+    // Check if the user already has an active checkout for the book
+    const [activeCheckouts] = await pool.query(activeCheckoutQuery, [
+      userId,
+      bookId,
+    ]);
+    if (activeCheckouts.length > 0) {
+      return res.redirect(
+        "/error?type=400 Bad Request&message=You have already borrowed this book"
+      );
+    }
+
+    // Check if the book is available for checkout
     const [bookRows] = await pool.query(bookQuery, [bookId]);
     if (bookRows[0].quantity === 0) {
       return res.redirect(
@@ -74,6 +102,7 @@ const checkoutBook = asyncHandler(async (req, res) => {
       );
     }
 
+    // Proceed with the checkout process
     await pool.query(insertCheckoutQuery, [
       userId,
       bookId,
@@ -81,6 +110,7 @@ const checkoutBook = asyncHandler(async (req, res) => {
       dueDate,
     ]);
     await pool.query(updateBookQuery, [bookId]);
+
     const [book] = await pool.query(bookQuery, [bookId]);
     res.render("checkoutDetails", {
       user: req.user,
