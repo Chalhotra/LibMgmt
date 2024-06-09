@@ -24,7 +24,7 @@ const requestForAdmin = asyncHandler(async (req, res) => {
 
     // Check if the user has any currently borrowed books
     const [borrowedResults] = await pool.query(
-      "SELECT COUNT(*) AS count FROM checkouts WHERE user_id = ? AND return_date IS NULL",
+      "SELECT COUNT(*) AS count FROM checkouts WHERE user_id = ? AND return_date IS NULL AND checkout_status = 'approved'",
       [userId]
     );
 
@@ -90,7 +90,7 @@ const checkoutBook = asyncHandler(async (req, res) => {
     ]);
     if (activeCheckouts.length > 0) {
       return res.redirect(
-        "/error?type=400 Bad Request&message=You have already borrowed this book"
+        "/error?type=400 Bad Request&message=You have already requested/borrowed this book"
       );
     }
 
@@ -125,14 +125,13 @@ const checkoutBook = asyncHandler(async (req, res) => {
 });
 
 const checkinBook = asyncHandler(async (req, res) => {
-  const checkoutId = req.params.id; // assuming the ID of the checkout record is passed as a parameter
+  const checkoutId = req.params.id;
   const userId = req.user.id;
   const returnDate = new Date();
 
-  // Get the due date and book ID from the checkouts table using the checkout ID
   const selectDueDateQuery = `
     SELECT id, due_date, book_id FROM checkouts 
-    WHERE id = ? AND user_id = ? AND return_date IS NULL
+    WHERE id = ? AND user_id = ? AND return_date IS NULL AND checkout_status = 'approved'
   `;
 
   try {
@@ -160,7 +159,7 @@ const checkinBook = asyncHandler(async (req, res) => {
     // Update the checkout record to set the return date and fine
     const updateCheckoutQuery = `
       UPDATE checkouts SET return_date = ?, fine = ? 
-      WHERE id = ? AND user_id = ? AND return_date IS NULL
+      WHERE id = ? AND user_id = ? AND return_date IS NULL AND checkout_status = 'approved'
     `;
     await pool.query(updateCheckoutQuery, [
       returnDate,
@@ -196,7 +195,7 @@ const checkBookHistory = asyncHandler(async (req, res) => {
         SELECT checkouts.id, checkouts.book_id, books.title, books.author, checkouts.checkout_date, checkouts.due_date, checkouts.return_date, checkouts.fine
         FROM checkouts
         JOIN books ON checkouts.book_id = books.id
-        WHERE checkouts.user_id = ?
+        WHERE checkouts.user_id = ? AND checkouts.checkout_status = 'approved'
     `;
   try {
     const [results] = await pool.query(query, [userId]);

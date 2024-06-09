@@ -7,9 +7,9 @@
     <h5>Title: <%= book.title %></h5>
     <p>Author: <%= book.author %></p>
     <% if (checkoutType === 'checkOut') { %>
-    <p>Checked Out By: <%= user.username %></p>
+    <p>Check out request sent by: <%= user.username %></p>
     <% } else if (checkoutType === 'checkIn') { %>
-    <p>Checked In By: <%= user.username %></p>
+    <p>Check in request sent by: <%= user.username %></p>
     <% } %>
 
     <form action="/api/user/books/view" method="GET">

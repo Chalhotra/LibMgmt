@@ -14,8 +14,10 @@
       <div class="row justify-content-center mt-5">
         <div class="col-md-8">
           <div class="card">
-            <div class="card-header bg-danger text-white">
-              <h4><%= errorType %></h4>
+            <div
+              class="card-header bg-<%- errorType === 0 ? 'success' : 'danger' %> text-white"
+            >
+              <h4><%= errorType === 0 ? 'Success!' : errorMessage %></h4>
             </div>
             <div class="card-body">
               <p class="card-text"><%= errorMessage %></p>

@@ -10,6 +10,9 @@ const {
   viewAdminRequests,
   approveAdminRequests,
   denyAdminRequests,
+  denyCheckoutRequests,
+  approveCheckoutRequests,
+  renderCheckoutRequests,
 } = require("../controllers/adminControllers");
 
 const router = express.Router();
@@ -22,5 +25,8 @@ router.get("/books/update/:id", validateToken, renderUpdateBookPage);
 router.get("/requests", validateToken, viewAdminRequests);
 router.post("/requests/:id/approve", validateToken, approveAdminRequests);
 router.post("/requests/:id/deny", validateToken, denyAdminRequests);
+router.get("/checkout/", validateToken, renderCheckoutRequests);
+router.post("/checkout/approve/:id", validateToken, approveCheckoutRequests);
+router.post("/checkout/deny/:id", validateToken, denyCheckoutRequests);
 
 module.exports = router;

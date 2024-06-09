@@ -264,6 +264,93 @@ const searchBooks = asyncHandler(async (req, res) => {
   }
 });
 
+const renderCheckoutRequests = asyncHandler(async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
+  }
+
+  try {
+    const [checkoutRequests] = await pool.query(
+      `SELECT checkouts.id AS ch_id, books.title, users.username, checkouts.checkout_status 
+       FROM checkouts  
+       JOIN users ON checkouts.user_id = users.id
+       JOIN books ON checkouts.book_id = books.id
+       WHERE checkouts.checkout_status = "pending"`
+    );
+
+    res.render("adminCheckoutReq", {
+      checkoutRequests,
+      user: req.user,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .redirect(
+        "/error?type=500 Internal Server Error&message=Failed to retrieve checkout requests."
+      );
+  }
+});
+
+const approveCheckoutRequests = asyncHandler(async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
+  }
+
+  const checkoutId = req.params.id;
+  let message;
+
+  try {
+    // Update checkout status to 'approved' in the database
+    await pool.query(
+      'UPDATE checkouts SET checkout_status = "approved" WHERE id = ?',
+      [checkoutId]
+    );
+    message = "Checkout request approved";
+    return res.redirect("/error?type=0 Success&message=Approved Successfully");
+  } catch (err) {
+    return res.redirect(
+      "/error?type=500 ServerError&message=Could not approve checkout"
+    );
+  }
+
+  // Fetch checkout requests from the database
+
+  const [checkoutRequests] = await pool.query(
+    `SELECT checkouts.id AS ch_id, books.title, users.username, checkouts.checkout_status FROM checkouts  
+    JOIN users on checkouts.user_id = users.id
+    JOIN books on checkouts.book_id = books.id
+    WHERE checkout_status = "pending"`
+  );
+  // Render the checkoutRequests page with the updated data
+});
+
+const denyCheckoutRequests = asyncHandler(async (req, res) => {
+  if (!req.user.isAdmin) {
+    return res.redirect(
+      "/error?type=403 Forbidden&message=You are not authorized to view this page."
+    );
+  }
+
+  const checkoutId = req.params.id;
+
+  try {
+    // Update checkout status to 'denied' in the database
+    await pool.query(
+      'UPDATE checkouts SET checkout_status = "denied" WHERE id = ?',
+      [checkoutId]
+    );
+    console.log("done");
+
+    return res.redirect("/error?type=0 Success&message=Denied Successfully");
+  } catch (err) {
+    ("/error?type=500 ServerError&message=Could not deny checkout");
+  }
+});
+
 module.exports = {
   adminDeleteBook,
   adminAddBook,
@@ -274,4 +361,7 @@ module.exports = {
   viewAdminRequests,
   approveAdminRequests,
   denyAdminRequests,
+  renderCheckoutRequests,
+  approveCheckoutRequests,
+  denyCheckoutRequests,
 };
